@@ -1,0 +1,84 @@
+/* responsive design start */
+
+/* start mobile design */
+
+@media (max-width: 768px) {
+    .auth-profile {
+        display: none !important;
+    }
+    .auth-profile-pic {
+        width: 35px !important;
+        height: 35px !important;
+    }
+    #navbarSupportedContent {
+        background: rgb(255, 255, 255);
+        border-radius: 1rem;
+    }
+    .nav-link {
+        padding-bottom: 16px !important;
+    }
+    .navbar-toggler {
+        padding: 10px 15px !important;
+        border: 2px solid #9e4aed !important;
+        border-color: #9e4aed !important;
+    }
+    .hero {
+        clip-path: ellipse(167% 88% at 50% 0%) !important;
+    }
+    .instructor-img {
+        width: 100% !important;
+        height: auto !important;
+    }
+    .newsletter {
+        background-size: cover !important;
+    }
+    .testimonial .quote-icon {
+        right: 10% !important;
+        top: 90% !important;
+    }
+
+    .homepage-footer {
+        clip-path: none !important;
+    }
+
+    /* login page */
+    .login-wizard {
+        border-radius: 1rem !important;
+    }
+    .homepage-footer {
+        clip-path: none !important;
+    }
+
+    /* course lession */
+
+    .chapter-title {
+        font-size: 0.75rem !important;
+    }
+
+    .content-title {
+        font-size: 0.75rem !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .hero {
+        clip-path: ellipse(167% 88% at 50% 0%) !important;
+    }
+    .homepage-footer {
+        clip-path: none !important;
+    }
+    .newsletter {
+        background-size: cover !important;
+    }
+}
+
+@media (max-width: 1400px) {
+    .left-section .info[data-v-eff72368] {
+        left: 8% !important;
+    }
+    .left-section .other-profiles {
+        right: 15% !important;
+    }
+}
+
+/* end mobile design */

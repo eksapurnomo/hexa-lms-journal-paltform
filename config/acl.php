@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'permissions' => [
+        'home' => ['dashboard'],
+        'user' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'restore'],
+        'instructor' => ['index', 'create', 'store', 'edit', 'update', 'restore', 'destroy', 'promote', 'migrate', 'featured'],
+        'course' => ['index', 'create',  'show', 'store', 'edit', 'update', 'restore', 'destroy', 'free'],
+        'contact' => ['index', 'show', 'destroy'],
+        'category' => ['index', 'create',  'store', 'edit', 'update', 'restore', 'destroy'],
+        'chapter' => ['index', 'create',  'store', 'edit', 'update', 'destroy', 'select_course'],
+        'exam' => ['index', 'create',  'store', 'edit', 'update', 'destroy', 'select_course'],
+        'quiz' => ['index', 'create',  'store', 'edit', 'update', 'destroy', 'select_course'],
+        'admin' => ['index', 'profile', 'profile.image.update'],
+        'report' => ['index', 'filter', 'generate.pdf', 'exportCSV'],
+        'coupon' => ['index', 'create',  'store', 'edit', 'update', 'destroy'],
+        'enrollment' => ['index', 'destroy', 'restore','suspended'],
+        'review' => ['index', 'destroy'],
+        'transaction' => ['index'],
+        'page' => ['index', 'edit', 'update'],
+        'setting' => ['index', 'update'],
+        'payment_gateway' => ['index', 'update'],
+        'notification' => ['index', 'edit', 'update', 'switch.status', 'custom.index', 'custom.send.message'],
+        'role' => ['index', 'create',  'store', 'edit', 'update', 'delete', 'assign_roletopermission', 'get_permission', 'assign_roletouser', 'dispatchRole'],
+        'storage' => ['link.storage'],
+        'payment' => ['paymentView'],
+        'certificate' => ['index', 'update','delete'],
+        'testimonial' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'restore'],
+        'newslatter' => ['index', 'delete', 'restore', 'send.mail'],
+    ],
+];

@@ -1,0 +1,12 @@
+
+   PASS  Tests\Feature\SettingSecurityTest
+  ✓ unauthenticated cannot access settings                               3.88s  
+  ✓ non admin cannot access settings                                     0.03s  
+  ✓ admin can access empty settings                                      0.08s  
+  ✓ first save creates singleton settings                                0.05s  
+  ✓ repeated save prevents duplicate records                             0.06s  
+  ✓ existing settings render correctly                                   0.06s  
+
+  Tests:    6 passed (19 assertions)
+  Duration: 4.20s
+

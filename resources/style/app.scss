@@ -1,0 +1,206 @@
+// Bootstrap vars
+$primary: #9e4aed;
+$success: #45bc1a;
+$light: #f8fafc;
+$info: #067bff;
+$border-radius-lg: 1rem;
+$border-color: #e2e8f0;
+$input-btn-padding-x: 1.6rem;
+$input-btn-padding-y: 0.7rem;
+$input-btn-focus-box-shadow: none;
+$input-border-color: #e2e8f0;
+$input-placeholder-color: #cbd5e1;
+$font-family-base: "Lexend", sans-serif;
+$border-radius: 0.6rem;
+$nav-link-padding-y: 0.7rem;
+$nav-link-padding-x: 1.4rem;
+$font-weight-bold: 600;
+
+$container-max-widths: (
+    sm: 98%,
+    md: 98%,
+    lg: 1120px,
+    xl: 1380px,
+    xxl: 1440px,
+);
+
+@import "bootstrap/scss/bootstrap";
+@import "swiper/swiper-bundle.css";
+@import "remixicon/fonts/remixicon.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+@import "vue-awesome-paginate/dist/style.css";
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap");
+
+/* Scroll bar */
+::-webkit-scrollbar {
+    height: 7px;
+    width: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: #ddd;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: $primary;
+}
+
+/* Selection */
+::selection {
+    background-color: $primary;
+    color: #fff;
+}
+
+// Customize Swiper
+.swiper-slide {
+    height: auto;
+}
+
+.swiper-button-next {
+    background-color: white;
+    padding: 10px 23px;
+    border-radius: 50%;
+    box-shadow: 0px 4px 16px 3px rgba(136, 136, 136, 0.16);
+    color: #333;
+
+    &::after {
+        font-size: 1rem;
+    }
+}
+
+.swiper-button-prev {
+    display: none;
+}
+
+.swiper-pagination-bullets {
+    .swiper-pagination-bullet {
+        width: 15px;
+        height: 15px;
+        background-color: transparent;
+        border: 1px solid #777;
+    }
+
+    .swiper-pagination-bullet-active {
+        background-color: #fff;
+        width: 30px;
+        border-color: #eee;
+        border-radius: 50px;
+        position: relative;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: 60%;
+            width: 80%;
+            transform: translate(-50%, -50%);
+            background-color: $primary;
+            border-radius: 50px;
+        }
+    }
+}
+
+// Customize Vue Awesome Paginate
+.paginate-buttons {
+    background-color: #fff !important;
+
+    &.number-buttons {
+        font-weight: bold;
+    }
+
+    &.active-page {
+        background-color: $primary !important;
+    }
+}
+
+// Custom utility
+.theme-shadow {
+    box-shadow: 0px 4px 16px 0px rgba(171, 190, 209, 0.16);
+}
+
+.text-hover {
+    color: #000;
+    transition: color 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+        color: $primary;
+    }
+}
+
+.text-blue {
+    color: #2563eb;
+}
+
+.text-black {
+    color: #2a3335;
+}
+
+.bg-light-purple {
+    background-color: #f3e9fe;
+}
+
+.bg-light-primary {
+    background-color: #f3e9fe;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.bg-lightgreen {
+    background-color: #e5fddb;
+}
+
+.search-input:focus {
+    box-shadow: none;
+}
+
+.pagination-container {
+    display: flex;
+    column-gap: 10px;
+}
+
+.paginate-buttons {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: rgb(242, 242, 242);
+    border: 1px solid rgb(217, 217, 217);
+    color: black;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+}
+
+.paginate-buttons:hover {
+    background-color: #d8d8d8;
+}
+
+.active-page {
+    background-color: #9e4aed;
+    border: 1px solid #9e4aed;
+    color: white;
+}
+
+.active-page:hover {
+    background-color: #2988c8;
+}
+
+.payment-logo {
+    width: 90px;
+    height: 94px;
+    padding: 16px 0;
+}
+
+.payment-logo img {
+    width: 100%;
+}
