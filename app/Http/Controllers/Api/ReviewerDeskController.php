@@ -108,7 +108,7 @@ class ReviewerDeskController extends Controller
         }
 
         $request->validate([
-            'recommendation' => 'required|string',
+            'recommendation' => ['required', 'string', \Illuminate\Validation\Rule::in(['accept', 'minor_revision', 'major_revision', 'reject'])],
             'comments_to_editor' => 'nullable|string',
             'comments_to_author' => 'nullable|string',
             'criteria_responses' => 'nullable|array',

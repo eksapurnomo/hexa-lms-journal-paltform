@@ -138,27 +138,112 @@ const router = createRouter({
             },
         },
         {
-            path: "/author/submissions",
-            name: "author_submission_list",
-            component: () => import("./pages/author/SubmissionList.vue"),
+            path: "/journals/:slug/register",
+            name: "journal_register",
+            component: () => import("./pages/journal/Register.vue"),
             meta: {
                 layout: defaultLayout,
                 requiresAuth: true,
             },
         },
         {
-            path: "/author/submissions/create",
-            name: "author_submission_create",
-            component: () => import("./pages/author/SubmissionForm.vue"),
+            path: "/journals/:slug/membership/status",
+            name: "journal_membership_status",
+            component: () => import("./pages/journal/MembershipStatus.vue"),
             meta: {
                 layout: defaultLayout,
                 requiresAuth: true,
             },
         },
         {
-            path: "/author/submissions/:id",
-            name: "author_submission_details",
-            component: () => import("./pages/author/SubmissionDetail.vue"),
+            path: "/author",
+            component: () => import("./pages/author/Workspace.vue"),
+            meta: {
+                layout: defaultLayout,
+                requiresAuth: true,
+            },
+            children: [
+                {
+                    path: "",
+                    name: "author_workspace_overview",
+                    component: () => import("./pages/author/Overview.vue"),
+                },
+                {
+                    path: "journals",
+                    name: "author_workspace_journals",
+                    component: () => import("./pages/author/Journals.vue"),
+                },
+                {
+                    path: "profile",
+                    name: "author_workspace_profile",
+                    component: () => import("./components/DashboardProfile.vue"),
+                },
+                {
+                    path: "submissions",
+                    name: "author_submission_list",
+                    component: () => import("./pages/author/SubmissionList.vue"),
+                },
+                {
+                    path: "submissions/create",
+                    name: "author_submission_create",
+                    component: () => import("./pages/author/SubmissionForm.vue"),
+                },
+                {
+                    path: "submissions/:id",
+                    name: "author_submission_details",
+                    component: () => import("./pages/author/SubmissionDetail.vue"),
+                }
+            ]
+        },
+        {
+            path: "/dashboard/journals/:slug/overview",
+            name: "dashboard_journal_workspace",
+            component: () => import("./pages/dashboard/DashboardJournalWorkspace.vue"),
+            meta: {
+                layout: defaultLayout,
+                requiresAuth: true,
+            },
+        },
+        {
+            path: "/dashboard/journals/:slug/submissions",
+            name: "dashboard_journal_submissions",
+            component: () => import("./pages/dashboard/DashboardJournalSubmissions.vue"),
+            meta: {
+                layout: defaultLayout,
+                requiresAuth: true,
+            },
+        },
+        {
+            path: "/dashboard/journals/:slug/submissions/:id",
+            name: "dashboard_journal_submission_details",
+            component: () => import("./pages/dashboard/DashboardJournalSubmissionDetails.vue"),
+            meta: {
+                layout: defaultLayout,
+                requiresAuth: true,
+            },
+        },
+        {
+            path: "/dashboard/journals/:slug/editorial-process",
+            name: "dashboard_journal_editorial_process",
+            component: () => import("./pages/dashboard/DashboardJournalEditorialProcess.vue"),
+            meta: {
+                layout: defaultLayout,
+                requiresAuth: true,
+            },
+        },
+        {
+            path: "/dashboard/journals/:slug/members",
+            name: "dashboard_journal_members",
+            component: () => import("./pages/dashboard/DashboardJournalMembers.vue"),
+            meta: {
+                layout: defaultLayout,
+                requiresAuth: true,
+            },
+        },
+        {
+            path: "/dashboard/journals/:slug/settings",
+            name: "dashboard_journal_settings",
+            component: () => import("./pages/dashboard/DashboardJournalSettings.vue"),
             meta: {
                 layout: defaultLayout,
                 requiresAuth: true,

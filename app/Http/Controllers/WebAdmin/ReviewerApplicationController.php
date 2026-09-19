@@ -53,6 +53,19 @@ class ReviewerApplicationController extends Controller
             'reviewed_at' => now(),
         ]);
 
+        // Add to the reviewer pool (JournalMembership) as pending.
+        // It requires JournalMembershipApplication verification to become active.
+        \App\Models\JournalMembership::updateOrCreate(
+            [
+                'journal_id' => $application->journal_id,
+                'user_id' => $application->user_id,
+                'role' => 'reviewer',
+            ],
+            [
+                'status' => 'pending', // <--- FIX: changed from 'active' to 'pending'
+            ]
+        );
+
         return redirect()->route('admin.reviewer_applications.show', $application->id)
             ->with('success', 'Application accepted successfully.');
     }

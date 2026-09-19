@@ -18,6 +18,9 @@ use App\Http\Controllers\PaymentController;
 Route::post('/login', [UserController::class, 'login']);
 Route::post('/register', [UserController::class, 'register']);
 
+Route::post('/account/activate', [\App\Http\Controllers\AccountActivationController::class, 'activateAccount']);
+Route::post('/account/activation-code/resend', [\App\Http\Controllers\AccountActivationController::class, 'sendActivationCode']);
+
 Route::post('/reset-password/validate', [ResetPasswordController::class, 'validateOtp']);
 Route::patch('/update-password', [UserController::class, 'updatePassword']);
 
@@ -38,6 +41,17 @@ Route::get('/coupon/validate', [EnrollController::class, 'verifyCoupon']);
 
 // Protected routes (JWT API guard)
 Route::middleware('auth:api')->group(function () {
+    Route::get('/user/dashboard-context', [\App\Http\Controllers\Api\UserDashboardController::class, 'context']);
+    Route::get('/user/journals/{slug}/management/overview', [\App\Http\Controllers\Api\UserDashboardController::class, 'journalManagementOverview']);
+    Route::get('/user/journals/{slug}/management/submissions', [\App\Http\Controllers\Api\UserDashboardController::class, 'journalSubmissions']);
+    Route::get('/user/journals/{slug}/management/submissions/{submission}', [\App\Http\Controllers\Api\UserDashboardController::class, 'journalSubmissionDetail']);
+    Route::get('/user/journals/{slug}/management/editorial-process', [\App\Http\Controllers\Api\UserDashboardController::class, 'journalEditorialProcess']);
+    Route::get('/user/journals/{slug}/management/members', [\App\Http\Controllers\Api\UserDashboardController::class, 'journalMembers']);
+    Route::get('/user/journals/{slug}/management/settings', [\App\Http\Controllers\Api\UserDashboardController::class, 'journalSettings']);
+    Route::patch('/user/journals/{slug}/management/settings', [\App\Http\Controllers\Api\UserDashboardController::class, 'updateJournalSettings']);
+    Route::get('/enroll_summary', [\App\Http\Controllers\EnrollController::class, 'summary']);
+    Route::get('/enrolled_courses', [\App\Http\Controllers\EnrollController::class, 'index']);
+
     Route::get('/enroll/{course}', [EnrollController::class, 'initiateTransaction']);
     Route::get('/free/enroll/{course}', [EnrollController::class, 'freeEnrollment']);
     
@@ -45,6 +59,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/view_content/{content}', [CourseController::class, 'viewContent']);
     
     Route::patch('/profile/update', [UserController::class, 'update']);
+    Route::get('/profile/academic', [\App\Http\Controllers\Api\AcademicProfileController::class, 'show']);
+    Route::patch('/profile/academic', [\App\Http\Controllers\Api\AcademicProfileController::class, 'update']);
     
     // UNCONFIRMED: /transactions could map to EnrollController@index or PaymentController@index
     Route::get('/transactions', [PaymentController::class, 'index']);
@@ -60,12 +76,32 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/{submission}/files', [\App\Http\Controllers\Api\SubmissionController::class, 'uploadFile'])->name('submissions.files.store');
         Route::get('/{submission}/files/{file}/download', [\App\Http\Controllers\Api\SubmissionController::class, 'downloadFile'])->name('submissions.files.download');
     });
+
+    Route::prefix('admin/journals/{journal}/memberships')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\JournalMembershipController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\JournalMembershipController::class, 'store']);
+        Route::put('/{membership}', [\App\Http\Controllers\Api\JournalMembershipController::class, 'update']);
+        Route::delete('/{membership}', [\App\Http\Controllers\Api\JournalMembershipController::class, 'destroy']);
+    });
+
+    // Phase JRAF-3 Step 2 - Journal Membership Applications & Status API
+    Route::prefix('journals/{journal}')->group(function () {
+        Route::get('/membership-application', [\App\Http\Controllers\Api\JournalMembershipApplicationController::class, 'show']);
+        Route::post('/membership-application', [\App\Http\Controllers\Api\JournalMembershipApplicationController::class, 'store']);
+        Route::patch('/membership-application', [\App\Http\Controllers\Api\JournalMembershipApplicationController::class, 'update']);
+        Route::post('/membership-application/submit', [\App\Http\Controllers\Api\JournalMembershipApplicationController::class, 'submit']);
+        Route::get('/membership-application/status', [\App\Http\Controllers\Api\JournalMembershipApplicationController::class, 'status']);
+        
+        Route::get('/membership', [\App\Http\Controllers\Api\JournalMembershipApplicationController::class, 'membership']);
+        Route::get('/reviewer-capability', [\App\Http\Controllers\Api\JournalMembershipApplicationController::class, 'reviewerCapability']);
+    });
 });
 
 // Phase 5E-B Editorial Desk Routes
 Route::middleware(['web', 'auth:web'])->prefix('editorial/submissions')->group(function () {
     Route::get('/', [\App\Http\Controllers\Api\EditorialDeskController::class, 'index']);
     Route::get('/{submission}', [\App\Http\Controllers\Api\EditorialDeskController::class, 'show']);
+    Route::post('/{submission}/rounds', [\App\Http\Controllers\Api\EditorialDeskController::class, 'startReviewRound']);
     Route::get('/{submission}/eligible-editors', [\App\Http\Controllers\Api\EditorialDeskController::class, 'eligibleEditors']);
     Route::patch('/{submission}/assign', [\App\Http\Controllers\Api\EditorialDeskController::class, 'assignEditor']);
     Route::patch('/{submission}/status', [\App\Http\Controllers\Api\EditorialDeskController::class, 'updateStatus']);

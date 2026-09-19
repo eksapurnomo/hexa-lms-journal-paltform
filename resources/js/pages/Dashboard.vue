@@ -1,28 +1,15 @@
 <template>
-    <main class="px-3 h-100 d-flex flex-column flex-grow-1">
-        <section class="row flex-grow-1">
-            <section class="col-4 border-end d-none d-xl-block col-xl-3">
-                <DashboardSidebar />
-            </section>
-            <section class="col-xl-9 p-5">
-                <button class="d-xl-none btn theme-shadow btn-outline-primary px-4 py-2 rounded-1 mt-3" type="button"
-                    data-bs-toggle="offcanvas" data-bs-target="#dashboardMenu" aria-controls="dashboardMenu">
-                    {{$t('Menu')}} <i class="bi bi-arrow-right-circle"></i>
-                </button>
-
-                <!-- Mobile Menu -->
-                <div class="offcanvas offcanvas-start" tabindex="-1" id="dashboardMenu">
-                    <div class="offcanvas-header">
-                        <button type="button" class="theme-shadow btn-outline-primary px-3 py-2 rounded-1 btn m-0"
-                            data-bs-dismiss="offcanvas" aria-label="Close">
-                            <i class="bi bi-x-circle"></i>
-                        </button>
-                    </div>
-                    <div class="offcanvas-body">
-                        <DashboardMenu />
-                    </div>
-                </div>
-
+    <UserWorkspaceLayout>
+        <template #sidebar>
+            <DashboardSidebar />
+        </template>
+        
+        <template #mobile-nav>
+            <DashboardMenu />
+        </template>
+        
+        <template #content>
+            <WorkspaceContainer type="standard">
                 <div class="tab-content" id="v-pills-tabContent">
                     <div class="tab-pane fade show active" id="v-pills-dashboard" role="tabpanel"
                         aria-labelledby="v-pills-dashboard-tab" tabindex="0">
@@ -44,13 +31,35 @@
                         aria-labelledby="v-pills-payment-tab" tabindex="0">
                         <DashboardPayment />
                     </div>
+
+                    <!-- Journal & Submissions -->
+                    <div class="tab-pane fade" id="v-pills-submissions" role="tabpanel"
+                        aria-labelledby="v-pills-submissions-tab" tabindex="0">
+                        <DashboardSubmissions v-if="authStore.dashboardContext?.submission?.has_submissions" />
+                    </div>
+
+                    <!-- Journal Memberships -->
+                    <div v-for="membership in authStore.dashboardContext?.memberships || []" :key="'pane-mem-'+membership.journal.id" 
+                        class="tab-pane fade" :id="'v-pills-membership-' + membership.journal.id" role="tabpanel" tabindex="0">
+                        <DashboardMembership :membership="membership" />
+                    </div>
+
+                    <!-- Journal Management -->
+                    <div v-for="mgmt in authStore.dashboardContext?.managed_journals || []" :key="'pane-mgmt-'+mgmt.journal.id" 
+                        class="tab-pane fade" :id="'v-pills-mgmt-' + mgmt.journal.id" role="tabpanel" tabindex="0">
+                        <DashboardJournalManagement :management="mgmt" />
+                    </div>
                 </div>
-            </section>
-        </section>
-    </main>
+            </WorkspaceContainer>
+        </template>
+    </UserWorkspaceLayout>
 </template>
 
 <script setup>
+import { onMounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import UserWorkspaceLayout from "../components/UserWorkspaceLayout.vue";
+import WorkspaceContainer from "../components/WorkspaceContainer.vue";
 import DashboardProfile from "../components/DashboardProfile.vue";
 import DashboardHome from "../components/DashboardHome.vue";
 import DashboardMenu from "../components/DashboardMenu.vue";
@@ -58,4 +67,13 @@ import DashboardSidebar from "../components/DashboardSidebar.vue";
 import DashboardCourses from "../components/DashboardCourses.vue";
 import DashboardCertificates from "../components/DashboardCertificates.vue";
 import DashboardPayment from "../components/DashboardPayment.vue";
+import DashboardSubmissions from "../components/DashboardSubmissions.vue";
+import DashboardMembership from "../components/DashboardMembership.vue";
+import DashboardJournalManagement from "../components/DashboardJournalManagement.vue";
+
+const authStore = useAuthStore();
+
+onMounted(() => {
+    authStore.fetchDashboardContext();
+});
 </script>

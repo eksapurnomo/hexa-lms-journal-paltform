@@ -197,7 +197,11 @@ const submitForm = async () => {
     }
 
     try {
-        const response = await axios.post('/api/submissions', form.value);
+        const response = await axios.post('/submissions', form.value, {
+            headers: {
+                Authorization: 'Bearer ' + authStore.authToken
+            }
+        });
         success.value = true;
         const newSubmissionId = response.data.data.id;
         

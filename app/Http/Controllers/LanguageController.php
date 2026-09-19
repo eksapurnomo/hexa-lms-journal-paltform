@@ -20,9 +20,10 @@ class LanguageController extends Controller
             $files = File::allFiles($folderPath);
 
             $fileNames = [];
+            $supportedLocales = ['en', 'id'];
             foreach ($files as $file) {
                 $fileName = $file->getFilenameWithoutExtension();
-                if ($fileName != 'installer_messages') {
+                if ($fileName != 'installer_messages' && in_array($fileName, $supportedLocales)) {
                     $fileNames[] = $fileName;
                 }
             }

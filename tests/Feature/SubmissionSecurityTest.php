@@ -393,4 +393,121 @@ class SubmissionSecurityTest extends TestCase
         $this->actingAs($admin, 'api')->getJson("/api/submissions/{$sub->id}")->assertStatus(200);
         $this->actingAs($admin, 'api')->getJson("/api/submissions")->assertStatus(200)->assertJsonCount(1, 'data');
     }
+
+    public function test_phase6_creator_access()
+    {
+        $authorA = User::factory()->create();
+        $journalA = Journal::create(['title' => 'JA', 'slug' => 'ja', 'status' => 'active']);
+        
+        $submissionA = Submission::forceCreate([
+            'journal_id' => $journalA->id,
+            'created_by' => $authorA->id,
+            'title' => 'A',
+            'status' => 'draft',
+        ]);
+        $submissionA->authors()->create([
+            'user_id' => $authorA->id,
+            'first_name' => 'A',
+            'sequence' => 1,
+            'is_corresponding' => true,
+        ]);
+
+        $this->actingAs($authorA, 'api')->getJson("/api/submissions/{$submissionA->id}")->assertStatus(200);
+        $this->actingAs($authorA, 'api')->putJson("/api/submissions/{$submissionA->id}", ['title' => 'B'])->assertStatus(200);
+        
+        $response = $this->actingAs($authorA, 'api')->getJson('/api/submissions');
+        $this->assertCount(1, $response->json('data'));
+    }
+
+    public function test_phase6_registered_co_author_view_access()
+    {
+        $creatorA = User::factory()->create();
+        $coAuthorB = User::factory()->create();
+        $journalA = Journal::create(['title' => 'JA', 'slug' => 'ja', 'status' => 'active']);
+        
+        $submission = Submission::forceCreate([
+            'journal_id' => $journalA->id,
+            'created_by' => $creatorA->id,
+            'title' => 'A',
+            'status' => 'draft',
+        ]);
+        $submission->authors()->create([
+            'user_id' => $coAuthorB->id,
+            'first_name' => 'B',
+            'sequence' => 1,
+            'is_corresponding' => false,
+        ]);
+
+        // Co-author can view
+        $this->actingAs($coAuthorB, 'api')->getJson("/api/submissions/{$submission->id}")->assertStatus(200);
+        
+        // Co-author sees it in list
+        $response = $this->actingAs($coAuthorB, 'api')->getJson('/api/submissions');
+        $this->assertCount(1, $response->json('data'));
+        
+        // Co-author cannot mutate
+        $this->actingAs($coAuthorB, 'api')->putJson("/api/submissions/{$submission->id}", ['title' => 'B'])->assertStatus(403);
+    }
+
+    public function test_phase6_corresponding_author_view_access()
+    {
+        $creatorA = User::factory()->create();
+        $corrAuthorB = User::factory()->create();
+        $journalA = Journal::create(['title' => 'JA', 'slug' => 'ja', 'status' => 'active']);
+        
+        $submission = Submission::forceCreate([
+            'journal_id' => $journalA->id,
+            'created_by' => $creatorA->id,
+            'title' => 'A',
+            'status' => 'draft',
+        ]);
+        $submission->authors()->create([
+            'user_id' => $corrAuthorB->id,
+            'first_name' => 'B',
+            'sequence' => 1,
+            'is_corresponding' => true,
+        ]);
+
+        // Corresponding author can view
+        $this->actingAs($corrAuthorB, 'api')->getJson("/api/submissions/{$submission->id}")->assertStatus(200);
+        
+        // Corresponding author cannot mutate
+        $this->actingAs($corrAuthorB, 'api')->putJson("/api/submissions/{$submission->id}", ['title' => 'B'])->assertStatus(403);
+    }
+
+    public function test_phase6_unrelated_user_denied()
+    {
+        $creatorA = User::factory()->create();
+        $unrelatedC = User::factory()->create();
+        $journalA = Journal::create(['title' => 'JA', 'slug' => 'ja', 'status' => 'active']);
+        
+        $submission = Submission::forceCreate([
+            'journal_id' => $journalA->id,
+            'created_by' => $creatorA->id,
+            'title' => 'A',
+            'status' => 'draft',
+        ]);
+
+        $this->actingAs($unrelatedC, 'api')->getJson("/api/submissions/{$submission->id}")->assertStatus(403);
+        $this->actingAs($unrelatedC, 'api')->putJson("/api/submissions/{$submission->id}", ['title' => 'B'])->assertStatus(403);
+    }
+
+    public function test_phase6_journal_isolation()
+    {
+        $creatorA = User::factory()->create();
+        $journalMemberB = User::factory()->create();
+        $journalA = Journal::create(['title' => 'JA', 'slug' => 'ja', 'status' => 'active']);
+        
+        JournalMembership::create(['journal_id' => $journalA->id, 'user_id' => $journalMemberB->id, 'role' => 'reviewer', 'status' => 'active']);
+        
+        $submission = Submission::forceCreate([
+            'journal_id' => $journalA->id,
+            'created_by' => $creatorA->id,
+            'title' => 'A',
+            'status' => 'draft',
+        ]);
+
+        // Member B is in Journal A, but not an author
+        $this->actingAs($journalMemberB, 'api')->getJson("/api/submissions/{$submission->id}")->assertStatus(403);
+    }
 }

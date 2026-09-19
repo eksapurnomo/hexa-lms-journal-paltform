@@ -35,21 +35,21 @@ class BladeServiceProvider extends ServiceProvider
             } catch (\Exception $e) {}
 
             $app_setting = [
-                'name' => 'HexaLMS',
+                'name' => config('app.name'),
                 'favicon' => asset('assets/images/favicon.ico'),
                 'logo' => asset('assets/images/logo-new.png'),
-                'footer_text' => 'HexaLMS',
+                'footer_text' => config('app.name'),
                 'currency_position' => 'Left',
-                'currency_symbol' => '$',
+                'currency_symbol' => config('app.currency_symbol', '$'),
             ];
 
             if ($setting) {
-                $app_setting['name'] = $setting->name ?? 'HexaLMS';
+                $app_setting['name'] = config('app.name');
                 $app_setting['favicon'] = $setting->faviconPath ?? $app_setting['favicon'];
                 $app_setting['logo'] = $setting->logoPath ?? $app_setting['logo'];
-                $app_setting['footer_text'] = $setting->footer_text ?? 'HexaLMS';
+                $app_setting['footer_text'] = $setting->footer_text ?: config('app.name');
                 $app_setting['currency_position'] = $setting->currency_position ?? 'Left';
-                $app_setting['currency_symbol'] = $setting->currency_symbol ?? '$';
+                $app_setting['currency_symbol'] = config('app.currency_symbol', '$');
             }
 
             $storageLink = !file_exists(public_path('storage'));

@@ -20,8 +20,8 @@
                             </router-link>
                         </li>
                         <li>
-                            <router-link to="/author/submissions" class="dropdown-item">
-                                {{ $t('My Submissions') }}
+                            <router-link to="/author" class="dropdown-item">
+                                {{ $t('Author Workspace') }}
                             </router-link>
                         </li>
                         <li>
@@ -137,8 +137,8 @@
                             </router-link>
                         </li>
                         <li>
-                            <router-link to="/author/submissions" class="dropdown-item">
-                                {{ $t('My Submissions') }}
+                            <router-link to="/author" class="dropdown-item">
+                                {{ $t('Author Workspace') }}
                             </router-link>
                         </li>
                         <li>

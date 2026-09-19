@@ -236,6 +236,68 @@ class EditorialDeskController extends Controller
     }
 
     /**
+     * Start a new review round for the latest revision.
+     */
+    public function startReviewRound(Request $request, Submission $submission)
+    {
+        Gate::authorize('editorial-process', [$submission]);
+
+        $latestRevision = $submission->revisions()->orderBy('version_number', 'desc')->first();
+        if (!$latestRevision) {
+            return $this->json('No revision found for submission.', null, 422);
+        }
+
+        $latestRound = $latestRevision->reviewRounds()->orderBy('round_number', 'desc')->first();
+        
+        if ($latestRound && !$latestRound->editorialDecision) {
+            return $this->json('An active review round already exists for this revision.', null, 422);
+        }
+
+        DB::transaction(function () use ($submission, $latestRevision, $latestRound) {
+            $newRoundNum = $latestRound ? $latestRound->round_number + 1 : 1;
+            
+            // Get current policy
+            $policy = [
+                'review_model' => 'double_blind',
+                'minimum_reviewers' => 2,
+                'target_reviewers' => 2,
+                'maximum_reviewers' => 4,
+            ];
+            
+            $journalPolicy = $submission->journal->peerReviewPolicy()->first();
+            if ($journalPolicy) {
+                $policy['review_model'] = $journalPolicy->review_model;
+                $policy['minimum_reviewers'] = $journalPolicy->minimum_reviewers;
+                $policy['target_reviewers'] = $journalPolicy->target_reviewers;
+                $policy['maximum_reviewers'] = $journalPolicy->maximum_reviewers;
+            }
+
+            $latestRevision->reviewRounds()->create([
+                'round_number' => $newRoundNum,
+                'review_model' => $policy['review_model'],
+                'minimum_reviewers' => $policy['minimum_reviewers'],
+                'target_reviewers' => $policy['target_reviewers'],
+                'maximum_reviewers' => $policy['maximum_reviewers'],
+            ]);
+
+            // Update submission status if needed
+            if (!in_array($submission->status, [Submission::STATUS_REVIEW_PENDING, 'under_review'])) {
+                $submission->forceFill(['status' => Submission::STATUS_REVIEW_PENDING])->save();
+                
+                $submission->editorialEvents()->create([
+                    'user_id' => auth()->id(),
+                    'action'  => 'status_transition',
+                    'payload' => ['from' => $submission->getOriginal('status') ?? Submission::STATUS_REVIEW_PENDING, 'to' => Submission::STATUS_REVIEW_PENDING],
+                ]);
+            }
+        });
+
+        $submission->load(['authors', 'revisions.files', 'revisions.reviewRounds.assignments.reviewer', 'revisions.reviewRounds.assignments.peerReview', 'revisions.reviewRounds.editorialDecision', 'journal', 'editor', 'editorialEvents.user']);
+
+        return $this->json('Review round started successfully.', new EditorialSubmissionResource($submission));
+    }
+
+    /**
      * Get eligible reviewers for the submission's journal.
      */
     public function eligibleReviewers(Submission $submission)
@@ -245,8 +307,21 @@ class EditorialDeskController extends Controller
         $reviewers = User::whereHas('journalMemberships', function ($query) use ($submission) {
             $query->where('journal_id', $submission->journal_id)
                   ->where('role', 'reviewer')
-                  ->where('status', 'active');
-        })->select('id', 'name', 'email')->get();
+                  ->where('status', 'active')
+                  ->where(function ($membershipQuery) use ($submission) {
+                      $membershipQuery->whereHas('reviewerCapability', function ($capQuery) {
+                          $capQuery->where('available_for_review', true);
+                      })
+                      ->orWhere(function ($fallbackQuery) use ($submission) {
+                          $fallbackQuery->whereDoesntHave('reviewerCapability')
+                                        ->whereHas('user.reviewerApplications', function ($appQuery) use ($submission) {
+                                            $appQuery->where('journal_id', $submission->journal_id)
+                                                     ->where('status', \App\Models\ReviewerApplication::STATUS_ACCEPTED);
+                                        });
+                      });
+                  });
+        })
+        ->select('id', 'name', 'email')->get();
 
         return response()->json([
             'message' => 'Eligible reviewers retrieved successfully.',
@@ -278,6 +353,21 @@ class EditorialDeskController extends Controller
             return $this->json('Target user is not a valid active reviewer for this journal.', null, 422);
         }
 
+        $capability = $targetMembership->reviewerCapability;
+        if ($capability) {
+            if (!$capability->available_for_review) {
+                return $this->json('Reviewer is not currently available for review.', null, 422);
+            }
+        } else {
+            $legacyApp = \App\Models\ReviewerApplication::where('user_id', $reviewerId)
+                ->where('journal_id', $submission->journal_id)
+                ->where('status', \App\Models\ReviewerApplication::STATUS_ACCEPTED)
+                ->first();
+            if (!$legacyApp) {
+                return $this->json('Reviewer is missing required capability or legacy application.', null, 422);
+            }
+        }
+
         DB::transaction(function () use ($submission, $reviewerId, $request) {
             $latestRevision = $submission->revisions()->orderBy('version_number', 'desc')->first();
             if (!$latestRevision) {
@@ -301,6 +391,14 @@ class EditorialDeskController extends Controller
                 
             if ($existing) {
                 throw new \Exception('Reviewer is already actively assigned to this round.');
+            }
+
+            $currentAssignments = \App\Models\ReviewAssignment::where('review_round_id', $latestRound->id)
+                ->whereIn('status', ['assigned', 'accepted', 'in_progress', 'submitted'])
+                ->count();
+                
+            if ($currentAssignments >= $latestRound->maximum_reviewers) {
+                throw new \Exception('Maximum number of reviewers reached.');
             }
 
             $assignment = \App\Models\ReviewAssignment::create([

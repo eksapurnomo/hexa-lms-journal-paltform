@@ -3,7 +3,9 @@
 @section('title', __('Apply as Reviewer'))
 
 @section('content')
-<div class="container py-5">
+    <div class="app-main-outer">
+        <div class="app-main-inner">
+            <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-10">
             <div class="card shadow-sm">
@@ -137,6 +139,9 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
-</div>
+            </div>
+        </div>
+    </div>
 @endsection

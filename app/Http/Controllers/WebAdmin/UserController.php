@@ -94,7 +94,7 @@ class UserController extends Controller
             }
         }
 
-        if (isset($request->is_admin)) {
+        if (isset($request->is_admin) && auth()->user() && auth()->user()->is_root) {
             $isAdmin = $request->is_admin == 'on' ? true : false;
             $newUser->assignRole('admin');
         } else {
@@ -114,6 +114,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $user->load('academicProfile', 'journalMemberships.journal');
         return view('user.edit', [
             'user' => $user
         ]);
@@ -162,7 +163,7 @@ class UserController extends Controller
             }
         }
 
-        if (isset($request->is_admin)) {
+        if (isset($request->is_admin) && auth()->user() && auth()->user()->is_root) {
             $isAdmin = $request->is_admin == 'on' ? true : false;
 
             $user->update([

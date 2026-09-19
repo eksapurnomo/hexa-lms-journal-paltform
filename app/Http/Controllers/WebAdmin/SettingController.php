@@ -53,15 +53,17 @@ class SettingController extends Controller
 
         $medias = $request->social_links;
 
-        foreach ($medias as $id => $url) {
-            SocialMediaRepository::query()->updateOrCreate(
-                ['id' => $id],
-                [
-                    'url' => $url,
-                    'status' => $url ? true : false,
-                ],
-            );
-        };
+        if (is_array($medias)) {
+            foreach ($medias as $id => $url) {
+                SocialMediaRepository::query()->updateOrCreate(
+                    ['id' => $id],
+                    [
+                        'url' => $url,
+                        'status' => $url ? true : false,
+                    ],
+                );
+            }
+        }
 
 
 

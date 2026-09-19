@@ -226,6 +226,80 @@
 
             </form>
 
+                <div class="row">
+                    <div class="col-md-12 mb-5">
+                        <div class="card">
+                            <div class="card-header border-bottom">
+                                <h5 class="m-0">{{ __('Academic Profile') }}</h5>
+                            </div>
+                            <div class="card-body">
+                                @if($user->academicProfile)
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th width="30%">{{ __('Highest Degree') }}</th>
+                                            <td>{{ $user->academicProfile->highest_degree ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{{ __('Academic Position') }}</th>
+                                            <td>{{ $user->academicProfile->academic_position ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{{ __('Institution') }}</th>
+                                            <td>{{ $user->academicProfile->institution ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{{ __('ORCID') }}</th>
+                                            <td>{{ $user->academicProfile->orcid ?? '-' }}</td>
+                                        </tr>
+                                    </table>
+                                @else
+                                    <p class="text-muted mb-0">{{ __('This user does not have an academic profile yet.') }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-5">
+                        <div class="card">
+                            <div class="card-header border-bottom">
+                                <h5 class="m-0">{{ __('Journal Memberships') }}</h5>
+                            </div>
+                            <div class="card-body">
+                                @if($user->journalMemberships && $user->journalMemberships->count() > 0)
+                                    <table class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ __('Journal') }}</th>
+                                                <th>{{ __('Role') }}</th>
+                                                <th>{{ __('Status') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($user->journalMemberships as $membership)
+                                            <tr>
+                                                <td>{{ $membership->journal->title ?? 'Unknown Journal' }}</td>
+                                                <td><span class="badge bg-primary text-capitalize">{{ $membership->role }}</span></td>
+                                                <td>
+                                                    @if($membership->status == 'active')
+                                                        <span class="badge bg-success">{{ __('Active') }}</span>
+                                                    @else
+                                                        <span class="badge bg-secondary">{{ ucfirst($membership->status) }}</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                @else
+                                    <p class="text-muted mb-0">{{ __('This user is not a member of any journals.') }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             <!-- ****End-Body-Section**** -->
         </div>
     </div>

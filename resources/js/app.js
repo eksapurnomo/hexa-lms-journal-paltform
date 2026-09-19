@@ -15,13 +15,13 @@ import piniaPersist from "pinia-plugin-persistedstate";
 
 const app = createApp(App);
 const pinia = createPinia();
+pinia.use(piniaPersist);
 app.use(pinia);
 
 localization.fetchLocalizationData();
 
 app.use(localization.i18n)
 app.use(router);
-pinia.use(piniaPersist);
 app.use(VueAwesomePaginate);
 
 app.mount("#app");

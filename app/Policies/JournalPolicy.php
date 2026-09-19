@@ -55,7 +55,7 @@ class JournalPolicy
             return false;
         }
 
-        return in_array($membership->role, ['owner', 'editor']);
+        return $membership->role === 'owner';
     }
 
     /**

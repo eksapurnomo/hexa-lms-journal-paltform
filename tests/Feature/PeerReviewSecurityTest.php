@@ -51,9 +51,19 @@ class PeerReviewSecurityTest extends TestCase
 
         $reviewer = User::factory()->create();
         JournalMembership::create(['journal_id' => $journal->id, 'user_id' => $reviewer->id, 'role' => 'reviewer', 'status' => 'active']);
+        \App\Models\ReviewerApplication::create([
+            'user_id' => $reviewer->id, 'journal_id' => $journal->id, 'status' => 'accepted',
+            'affiliation' => 'A', 'department' => 'D', 'academic_position' => 'P', 'primary_research_area' => 'R', 'years_of_experience' => 1
+        ]);
+        \App\Models\AcademicProfile::factory()->create(['user_id' => $reviewer->id]);
 
         $otherReviewer = User::factory()->create();
         JournalMembership::create(['journal_id' => $journal->id, 'user_id' => $otherReviewer->id, 'role' => 'reviewer', 'status' => 'active']);
+        \App\Models\ReviewerApplication::create([
+            'user_id' => $otherReviewer->id, 'journal_id' => $journal->id, 'status' => 'accepted',
+            'affiliation' => 'A', 'department' => 'D', 'academic_position' => 'P', 'primary_research_area' => 'R', 'years_of_experience' => 1
+        ]);
+        \App\Models\AcademicProfile::factory()->create(['user_id' => $otherReviewer->id]);
 
         $author = User::factory()->create();
 

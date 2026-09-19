@@ -83,7 +83,12 @@ class UserController extends Controller
         }
 
         /** @var User */
-        $user = JWTAuth::user(); // Fetch the authenticated user
+        $user = JWTAuth::setToken($token)->toUser();
+
+        if (!$user->is_active) {
+            JWTAuth::invalidate($token);
+            return $this->json('Account is not active. Please activate your account.', null, 403);
+        }
 
         if ($user->is_admin || $user->hasRole('admin') || $user->instructor) {
             return $this->json('You are not a student, please sign up as a student', null, 403);

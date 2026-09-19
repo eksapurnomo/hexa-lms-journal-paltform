@@ -42,6 +42,10 @@ class EditorialSubmissionResource extends JsonResource
                                 return [
                                     'id'          => $round->id,
                                     'round_number' => $round->round_number,
+                                    'review_model' => $round->review_model,
+                                    'minimum_reviewers' => $round->minimum_reviewers,
+                                    'target_reviewers' => $round->target_reviewers,
+                                    'maximum_reviewers' => $round->maximum_reviewers,
                                     'created_at'  => $round->created_at,
                                     'editorial_decision' => $round->relationLoaded('editorialDecision')
                                         ? ($round->editorialDecision ? [

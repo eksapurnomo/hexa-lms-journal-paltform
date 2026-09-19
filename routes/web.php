@@ -58,6 +58,9 @@ Route::middleware(['auth', 'adminauth'])->group(function () {
         Route::get('/user', [UserController::class, 'index'])->name('user.index');
         Route::get('/user/admin', [UserController::class, 'admin'])->name('user.admin');
         Route::get('/root', [UserController::class, 'admin'])->name('admin.index');
+        Route::resource('/academic-reviewers', \App\Http\Controllers\WebAdmin\AcademicReviewerController::class)
+            ->only(['index', 'show'])
+            ->parameters(['academic-reviewers' => 'user']);
         Route::get('/cache-clear', function() { return back(); })->name('cache.clear');
         Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
         Route::post('/user', [UserController::class, 'store'])->name('user.store');
@@ -236,6 +239,11 @@ Route::middleware(['auth', 'adminauth'])->group(function () {
         Route::get('/journal/reviewer-applications/{id}', [\App\Http\Controllers\WebAdmin\ReviewerApplicationController::class, 'show'])->name('admin.reviewer_applications.show');
         Route::post('/journal/reviewer-applications/{id}/accept', [\App\Http\Controllers\WebAdmin\ReviewerApplicationController::class, 'accept'])->name('admin.reviewer_applications.accept');
         Route::post('/journal/reviewer-applications/{id}/deny', [\App\Http\Controllers\WebAdmin\ReviewerApplicationController::class, 'deny'])->name('admin.reviewer_applications.deny');
+        // Membership Verification (Admin)
+        Route::get('/journal/membership-verifications', [\App\Http\Controllers\WebAdmin\MembershipVerificationController::class, 'index'])->name('admin.membership-verifications.index');
+        Route::get('/journal/membership-verifications/{id}', [\App\Http\Controllers\WebAdmin\MembershipVerificationController::class, 'show'])->name('admin.membership-verifications.show');
+        Route::post('/journal/membership-verifications/{id}/status', [\App\Http\Controllers\WebAdmin\MembershipVerificationController::class, 'updateStatus'])->name('admin.membership-verifications.updateStatus');
+        Route::get('/journal/verification-evidence/{evidence}/download', [\App\Http\Controllers\VerificationEvidenceController::class, 'download'])->name('admin.verification-evidence.download');
     });
 });
 
@@ -253,6 +261,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('journal/reviewer/apply', [\App\Http\Controllers\ReviewerApplicationController::class, 'store'])->name('reviewer.store');
     Route::get('journal/reviewer/application', [\App\Http\Controllers\ReviewerApplicationController::class, 'show'])->name('reviewer.application.status');
 
+    // Journal Membership Applications (User)
+    Route::resource('journal/membership-applications', \App\Http\Controllers\JournalMembershipApplicationController::class)->except(['destroy']);
+    Route::post('journal/membership-applications/{id}/submit', [\App\Http\Controllers\JournalMembershipApplicationController::class, 'submit'])->name('membership-applications.submit');
+    Route::post('journal/membership-applications/{application}/evidence', [\App\Http\Controllers\VerificationEvidenceController::class, 'store'])->name('verification-evidence.store');
+    Route::get('journal/verification-evidence/{evidence}/download', [\App\Http\Controllers\VerificationEvidenceController::class, 'download'])->name('verification-evidence.download');
+
+    Route::get('admin/journal/process-flow', [\App\Http\Controllers\WebAdmin\JournalProcessFlowController::class, 'index'])->name('admin.journal.process-flow');
+    Route::get('admin/journal/process-flow/users', [\App\Http\Controllers\WebAdmin\JournalUserProcessMonitorController::class, 'index'])->name('admin.journal.process-flow.users.index');
+    Route::get('admin/journal/process-flow/{journal}/users/{user}', [\App\Http\Controllers\WebAdmin\JournalUserProcessMonitorController::class, 'show'])->name('admin.journal.process-flow.users.show');
+
     Route::get('admin/editorial/{any?}', function () {
         return view('editorial.index');
     })->where('any', '.*')->name('admin.editorial');
@@ -263,7 +281,10 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/change-language/{lang}', function($lang) {
-    session()->put('locale', $lang);
+    $supportedLocales = ['en', 'id'];
+    if (in_array($lang, $supportedLocales)) {
+        session()->put('locale', $lang);
+    }
     return back();
 })->name('change.language');
 

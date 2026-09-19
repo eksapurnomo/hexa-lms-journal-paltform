@@ -73,6 +73,42 @@
                             </span>
                         </a>
                     </li>
+                    <li>
+                        <a class="menu {{ request()->routeIs('admin.journal.process-flow') ? 'active' : '' }}" href="{{ route('admin.journal.process-flow') }}">
+                            <span>
+                                <img class="menu-icon" src="{{ asset('assets/images/menu/book-open-text.svg') }}"
+                                    alt="icon" loading="lazy" />
+                                {{ __('Journal Process Flow') }}
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="menu {{ request()->routeIs('admin.journal.process-flow.users.*') ? 'active' : '' }}" href="{{ route('admin.journal.process-flow.users.index') }}">
+                            <span>
+                                <img class="menu-icon" src="{{ asset('assets/images/menu/book-open-text.svg') }}"
+                                    alt="icon" loading="lazy" />
+                                {{ __('Journal User Process Monitor') }}
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="menu {{ request()->is('admin/academic-reviewers*') ? 'active' : '' }}" href="{{ route('academic-reviewers.index') }}">
+                            <span>
+                                <img class="menu-icon" src="{{ asset('assets/images/menu/book-open-text.svg') }}"
+                                    alt="icon" loading="lazy" />
+                                {{ __('Academic & Reviewer Management') }}
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="menu {{ request()->is('journal/membership-verifications*') ? 'active' : '' }}" href="{{ route('admin.membership-verifications.index') }}">
+                            <span>
+                                <img class="menu-icon" src="{{ asset('assets/images/menu/book-open-text.svg') }}"
+                                    alt="icon" loading="lazy" />
+                                {{ __('Membership Verification') }}
+                            </span>
+                        </a>
+                    </li>
                 @endif
                 
                 {{-- course start --}}
@@ -449,6 +485,20 @@
                     </li>
                 @endcanany
                 {{-- profile End --}}
+
+                <li class="menu-divider">
+                    <span class="menu-title">{{ __('Academic Identity') }}</span>
+                </li>
+                <li>
+                    <a class="menu {{ request()->is('journal/membership-applications*') ? 'active' : '' }}"
+                        href="{{ route('membership-applications.index') }}">
+                        <span>
+                            <img class="menu-icon" src="{{ asset('assets/images/icon/user-square.svg') }}"
+                                alt="icon" loading="lazy" />
+                            {{ __('Journal Applications') }}
+                        </span>
+                    </a>
+                </li>
 
                 {{-- Report start --}}
                 @if (!auth()->user()->is_admin && !auth()->user()->hasRole('admin') && auth()->user()->hasRole('instructor'))

@@ -25,8 +25,13 @@ class SubmissionPolicy
             return true;
         }
 
-        // Author
+        // Author / Creator
         if ($submission->created_by === $user->id) {
+            return true;
+        }
+
+        // Registered Co-Author
+        if ($submission->authors()->where('user_id', $user->id)->exists()) {
             return true;
         }
 

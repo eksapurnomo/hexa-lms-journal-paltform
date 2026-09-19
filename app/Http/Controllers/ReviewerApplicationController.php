@@ -103,6 +103,20 @@ class ReviewerApplicationController extends Controller
 
         ReviewerApplication::create($validated);
 
+        // UAM.3: Sync to Canonical AcademicProfile
+        \App\Models\AcademicProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'institution' => $validated['affiliation'],
+                'department' => $validated['department'],
+                'academic_position' => $validated['academic_position'],
+                'orcid' => $validated['orcid'] ?? null,
+                'google_scholar_url' => $validated['academic_url'] ?? null,
+                'research_interests' => $validated['primary_research_area'],
+                'expertise' => isset($validated['expertise']) ? explode(',', $validated['expertise']) : null,
+            ]
+        );
+
         return redirect()->route('reviewer.application.status')->with('success', 'Your reviewer application has been submitted and is awaiting editorial review.');
     }
 }

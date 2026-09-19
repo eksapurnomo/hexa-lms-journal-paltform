@@ -25,8 +25,12 @@ class SubmissionRepository extends Repository
         }
 
         return $query->where(function ($q) use ($user) {
-            // Author
+            // Author (Creator)
             $q->where('created_by', $user->id)
+              // Registered Co-Author
+              ->orWhereHas('authors', function ($authorQuery) use ($user) {
+                  $authorQuery->where('user_id', $user->id);
+              })
               // Journal Owner (can see all in journal)
               ->orWhereHas('journal.memberships', function ($membershipQuery) use ($user) {
                   $membershipQuery->where('user_id', $user->id)

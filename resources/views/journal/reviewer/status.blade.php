@@ -3,7 +3,9 @@
 @section('title', __('Reviewer Application Status'))
 
 @section('content')
-<div class="container py-5">
+    <div class="app-main-outer">
+        <div class="app-main-inner">
+            <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
             
@@ -60,6 +62,9 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
-</div>
+            </div>
+        </div>
+    </div>
 @endsection

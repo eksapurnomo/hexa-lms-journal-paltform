@@ -12,22 +12,30 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AccountActivationController extends Controller
 {
-    public function sendActivationCode()
+    public function sendActivationCode(Request $request)
     {
-        if (auth()->user()->is_active) {
+        $request->validate(['email' => 'required|email']);
+        
+        $user = User::where('email', $request->email)->first();
+        
+        if (!$user) {
+            return $this->json('User not found', [], 404);
+        }
+
+        if ($user->is_active) {
             return $this->json('Account already activated', [], 400);
         }
 
         $code = rand(1111, 9999);
 
         AccountActivationRepository::create([
-            'user_id' => auth()->user()->id,
+            'user_id' => $user->id,
             'code' => $code,
             'valid_until' => now()->addHour(),
         ]);
 
         try {
-            MailSendEvent::dispatch($code, auth()->user()->email);
+            MailSendEvent::dispatch($code, $user->email);
         } catch (\Exception $e) {
         }
 
@@ -36,19 +44,28 @@ class AccountActivationController extends Controller
 
     public function activateAccount(Request $request)
     {
-        if (auth()->user()->is_active) {
+        $request->validate([
+            'email' => 'required|email',
+            'code' => 'required'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return $this->json('User not found', [], 404);
+        }
+
+        if ($user->is_active) {
             return $this->json('Account already activated', [], 400);
         }
 
         $code = AccountActivationRepository::query()
             ->where('code', $request->code)
-            ->where('user_id', auth()->user()->id)
+            ->where('user_id', $user->id)
             ->where('valid_until', '>=', now())
             ->first();
 
         if ($code) {
-            /** @var User */
-            $user = auth()->user();
             UserRepository::update($user, ['is_active' => true]);
 
             $code->delete();

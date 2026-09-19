@@ -1,83 +1,112 @@
 <template>
-    <section class="my-2">
-        <span class="d-block mb-3 mb-lg-5">{{ $t('Home') }}/{{ $t('Dashboard') }}</span>
-        <div class="row mb-4">
-            <div v-if="lastActivityCourse" class="col-12 col-lg-6 mb-3 mb-lg-0">
-                <h4 class="mb-4">{{ $t('Recent Lesson') }}</h4>
-                <div class="mb-4 theme-shadow course-preview-wrapper">
-                    <div class="course-preview" :style="'background-image: url(' +
-                        lastActivityCourse?.thumbnail +
-                        ');'
-                        ">
-                        <router-link :to="'/play/' + lastActivityCourse?.id"
-                            class="play-btn d-flex rounded-circle bg-primary text-white px-2">
-                            <i class="bi bi-play-fill"></i>
-                        </router-link>
+    <section class="mb-4">
+        <h4 class="mb-4 fw-bold">{{ $t('Dashboard') }}</h4>
+        
+        <!-- Current Work Section -->
+        <h6 class="text-muted fw-bold text-uppercase mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">{{ $t('Current Work') }}</h6>
+        <div class="row g-3 mb-5">
+            <!-- LMS Current Work -->
+            <div v-if="lastActivityCourse" class="col-12 col-xl-6">
+                <div class="theme-shadow rounded bg-white p-3 d-flex align-items-center h-100 position-relative hover-lift transition-all border border-light">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="rounded overflow-hidden bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 60px;">
+                            <img v-if="lastActivityCourse?.thumbnail" :src="lastActivityCourse?.thumbnail" class="img-fluid" style="object-fit: cover; width: 100%; height: 100%;" />
+                            <i v-else class="bi bi-play-circle fs-3 text-muted"></i>
+                        </div>
                     </div>
-                    <div class="p-3">
-                        <router-link :to="'/details/' + lastActivityCourse?.id" class="text-decoration-none text-hover">
-                            <h5 class="card-title mb-3">
-                                {{ lastActivityCourse?.title }}
-                            </h5>
-                        </router-link>
-                        <router-link :to="'/play/' + lastActivityCourse.id"
-                            class="text-decoration-none text-muted d-flex justify-content-between border rounded px-3 py-2">
-                            <div>
-                                <i class="bi bi-play-circle-fill text-danger me-2"></i>
-                                <small>{{
-                                    lastActivityCourse?.title?.length > 30
-                                        ? lastActivityCourse?.title.slice(
-                                            0,
-                                            30
-                                        ) + "..."
-                                        : lastActivityCourse?.title
-                                }}</small>
-                            </div>
-                            <small>{{
-                                formatDuration(
-                                    lastActivityCourse.total_duration
-                                )
-                            }}</small>
+                    <div class="flex-grow-1 min-w-0">
+                        <span class="badge bg-primary-subtle text-primary mb-1 fw-medium" style="font-size: 0.7rem;">{{ $t('Continue Learning') }}</span>
+                        <h6 class="mb-0 text-truncate text-dark fw-bold">
+                            {{ lastActivityCourse?.title }}
+                        </h6>
+                    </div>
+                    <div class="flex-shrink-0 ms-3">
+                        <router-link :to="'/play/' + lastActivityCourse?.id" class="btn btn-primary rounded-circle shadow-sm" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-play-fill fs-5"></i>
                         </router-link>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-lg-6 d-flex d-lg-block justify-content-center">
-                <h4 class="mb-4">{{ $t('Activity Log') }}</h4>
-                <div v-if="totalCourseCount > 0">
-                    <VueApexCharts type="donut" :options="chartOptions" :series="series" />
+
+            <!-- Author Submissions -->
+            <div v-if="authStore.dashboardContext?.submission?.has_submissions" class="col-12 col-xl-6">
+                <div class="theme-shadow rounded bg-white p-3 d-flex align-items-center h-100 position-relative hover-lift transition-all border border-light">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="rounded-circle bg-info-subtle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-file-earmark-text text-info fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <span class="badge bg-info-subtle text-info mb-1 fw-medium" style="font-size: 0.7rem;">{{ $t('Author Workspace') }}</span>
+                        <h6 class="mb-0 text-truncate text-dark fw-bold">
+                            {{ authStore.dashboardContext.submission.count }} Active {{ authStore.dashboardContext.submission.count === 1 ? 'Manuscript' : 'Manuscripts' }}
+                        </h6>
+                    </div>
+                    <div class="flex-shrink-0 ms-3">
+                        <router-link to="/author" class="btn btn-outline-info rounded-circle" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-arrow-right fs-5"></i>
+                        </router-link>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Journal Management -->
+            <div v-if="authStore.dashboardContext?.managed_journals?.length > 0" class="col-12 col-xl-6">
+                <div class="theme-shadow rounded bg-white p-3 d-flex align-items-center h-100 position-relative hover-lift transition-all border border-light">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="rounded-circle bg-success-subtle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-journal-check text-success fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <span class="badge bg-success-subtle text-success mb-1 fw-medium" style="font-size: 0.7rem;">{{ $t('Journal Management') }}</span>
+                        <h6 class="mb-0 text-truncate text-dark fw-bold">
+                            Managing {{ authStore.dashboardContext.managed_journals.length }} {{ authStore.dashboardContext.managed_journals.length === 1 ? 'Journal' : 'Journals' }}
+                        </h6>
+                    </div>
+                    <div class="flex-shrink-0 ms-3">
+                        <router-link to="/dashboard/journals" class="btn btn-outline-success rounded-circle" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-arrow-right fs-5"></i>
+                        </router-link>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-md-6 col-lg-4 mb-4 mb-lg-0">
-                <div class="theme-shadow rounded p-3 d-flex justify-content-between h-100">
-                    <div class="my-auto">
-                        <span class="d-block">{{ $t('My Courses') }}</span>
-                        <strong class="fs-5">{{ totalCourseCount }}</strong>
+        
+        <!-- Stats Summary Section -->
+        <h6 class="text-muted fw-bold text-uppercase mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">{{ $t('Learning Summary') }}</h6>
+        <div class="row g-3">
+            <div class="col-6 col-md-4">
+                <div class="theme-shadow rounded bg-white p-3 d-flex align-items-center border border-light">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 45px; height: 45px;">
+                        <i class="bi bi-book text-muted fs-5"></i>
                     </div>
-                    <img :src="'assets/images/website/hero-popular.png'" height="60px" width="60px" class="my-auto" />
+                    <div class="min-w-0">
+                        <div class="text-muted small fw-medium text-truncate">{{ $t('My Courses') }}</div>
+                        <h4 class="mb-0 fw-bold">{{ totalCourseCount }}</h4>
+                    </div>
                 </div>
             </div>
-
-            <div class="col-md-6 col-lg-4 mb-4 mb-lg-0">
-                <div class="theme-shadow rounded p-3 d-flex justify-content-between h-100">
-                    <div class="my-auto">
-                        <span class="d-block">{{ $t('Completed Courses') }}</span>
-                        <strong class="fs-5">{{ completedCourseCount }}</strong>
+            <div class="col-6 col-md-4">
+                <div class="theme-shadow rounded bg-white p-3 d-flex align-items-center border border-light">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 45px; height: 45px;">
+                        <i class="bi bi-check-circle text-muted fs-5"></i>
                     </div>
-                    <img :src="'assets/images/website/hero-popular.png'" height="60px" width="60px" class="my-auto" />
+                    <div class="min-w-0">
+                        <div class="text-muted small fw-medium text-truncate">{{ $t('Completed') }}</div>
+                        <h4 class="mb-0 fw-bold">{{ completedCourseCount }}</h4>
+                    </div>
                 </div>
             </div>
-
-            <div class="col-md-6 col-lg-4 mb-4 mb-lg-0 mx-auto mx-lg-0">
-                <div class="theme-shadow rounded p-3 d-flex justify-content-between h-100">
-                    <div class="my-auto">
-                        <span class="d-block">{{ $t('Certificate Achieved') }}</span>
-                        <strong class="fs-5">{{ certificateAchieved }}</strong>
+            <div class="col-6 col-md-4">
+                <div class="theme-shadow rounded bg-white p-3 d-flex align-items-center border border-light">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 45px; height: 45px;">
+                        <i class="bi bi-award text-muted fs-5"></i>
                     </div>
-                    <img :src="'assets/images/website/hero-popular.png'" height="60px" width="60px" class="my-auto" />
+                    <div class="min-w-0">
+                        <div class="text-muted small fw-medium text-truncate">{{ $t('Certificates') }}</div>
+                        <h4 class="mb-0 fw-bold">{{ certificateAchieved }}</h4>
+                    </div>
                 </div>
             </div>
         </div>
@@ -85,96 +114,67 @@
 </template>
 
 <style lang="scss" scoped>
-.course-preview {
-    height: 300px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 2rem;
-    font-weight: bold;
-
-    .play-btn {
-        cursor: pointer;
-        border: 5px solid #ffffffbd;
-        border-radius: 50%;
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;
     }
 }
-
-.course-preview-wrapper {
-    border-radius: 1rem;
+.transition-all {
+    transition: all 0.2s ease;
+}
+.min-w-0 {
+    min-width: 0;
 }
 </style>
 
 <script setup>
-import VueApexCharts from "vue3-apexcharts";
 import { useAuthStore } from "@/stores/auth";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import axios from "axios";
 
 const authStore = useAuthStore();
 
 let totalCourseCount = ref(0);
 let completedCourseCount = ref(0);
 let certificateAchieved = ref(0);
-let lastActivityCourse = ref({});
+let lastActivityCourse = ref(null);
 
-let series = ref([]);
+onMounted(() => {
+    if (!authStore.dashboardContext || (!authStore.dashboardContext.submission && !authStore.dashboardContext.managed_journals)) {
+        authStore.fetchDashboardContext();
+    }
 
-let chartOptions = ref({
-    // series: series.value,
-    chart: {
-        type: "donut",
-    },
-    labels: ["Total Courses", "Completed Courses", "Certificates Achieved"],
-    responsive: [
-        {
-            breakpoint: 480,
-            options: {
-                chart: {
-                    width: 200,
-                },
-                legend: {
-                    position: "bottom",
-                },
+    axios
+        .get("/enroll_summary", {
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + authStore.authToken,
             },
-        },
-    ],
+        })
+        .then((res) => {
+            totalCourseCount.value = res.data.data.total_courses || 0;
+            completedCourseCount.value = res.data.data.completed_courses || 0;
+            certificateAchieved.value = res.data.data.certificate_achieved || 0;
+            
+            if (res.data.data.last_activity_course && Object.keys(res.data.data.last_activity_course).length > 0) {
+                lastActivityCourse.value = res.data.data.last_activity_course;
+            } else {
+                lastActivityCourse.value = null;
+            }
+        }).catch(err => {
+            console.error("Failed to load enroll summary", err);
+        });
 });
 
-axios
-    .get("/enroll_summary", {
-        headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + authStore.authToken,
-        },
-    })
-    .then((res) => {
-        (totalCourseCount.value = res.data.data.total_courses),
-            (completedCourseCount.value = res.data.data.completed_courses),
-            (certificateAchieved.value = res.data.data.certificate_achieved),
-            (lastActivityCourse.value = res.data.data.last_activity_course);
-
-        series.value = [
-            totalCourseCount.value,
-            completedCourseCount.value,
-            certificateAchieved.value,
-        ];
-    });
-
-// works on time formating
-
 const formatDuration = (duration) => {
+    if (!duration) return '0 min';
     if (duration >= 60) {
         const hours = Math.floor(duration / 60);
         const minutes = duration % 60;
-        return `${hours} hour${hours > 1 ? "s" : ""}${minutes > 0 ? ` ${minutes} min` : ""
-            }`;
+        return `${hours} hour${hours > 1 ? "s" : ""}${minutes > 0 ? ` ${minutes} min` : ""}`;
     }
     return `${duration} min`;
 };

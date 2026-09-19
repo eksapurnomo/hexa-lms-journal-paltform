@@ -172,7 +172,7 @@ const updateProfile = async () => {
         if (form.value.email) formData.append("email", form.value.email);
 
         // API request to update the profile
-        const response = await axios.post(`/profile/update`, formData, {
+        const response = await axios.patch(`/profile/update`, formData, {
             headers: {
                 Accept: "application/json",
                 Authorization: "Bearer " + authStore.authToken,

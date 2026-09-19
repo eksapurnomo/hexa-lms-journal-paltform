@@ -21,4 +21,9 @@ class JournalMembership extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function reviewerCapability(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(JournalReviewerCapability::class);
+    }
 }

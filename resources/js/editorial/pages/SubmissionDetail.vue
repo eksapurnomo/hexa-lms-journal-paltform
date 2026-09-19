@@ -73,13 +73,46 @@
                                     <li v-if="!revision.files || revision.files.length === 0" class="list-group-item text-muted small">No files.</li>
                                 </ul>
 
-                                <strong class="small text-secondary text-uppercase d-block mb-2">Review Rounds</strong>
+                                <strong class="small text-secondary text-uppercase d-block mb-2">Review Process</strong>
                                 <div v-if="revision.review_rounds && revision.review_rounds.length > 0">
                                     <div v-for="round in revision.review_rounds" :key="round.id" class="card mb-2 border">
                                         <div class="card-body p-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <h6 class="card-title m-0">Round {{ round.round_number }}</h6>
+                                                <h6 class="card-title m-0">Round {{ round.round_number }} <span class="badge bg-primary ms-2" v-if="!round.editorial_decision">Active</span></h6>
                                                 <small class="text-muted">{{ formatDate(round.created_at) }}</small>
+                                            </div>
+
+                                            <div class="mb-3 p-3 bg-light border rounded">
+                                                <div class="mb-3">
+                                                    <strong class="small text-muted d-block mb-1">Review Model</strong>
+                                                    <div>{{ formatStatus(round.review_model) }}</div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <strong class="small text-muted d-block mb-1">Reviewer Requirements</strong>
+                                                    <div class="row text-center small w-75">
+                                                        <div class="col-4">
+                                                            <div class="text-muted">Minimum</div>
+                                                            <div><strong>{{ round.minimum_reviewers }}</strong></div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="text-muted">Target</div>
+                                                            <div><strong>{{ round.target_reviewers }}</strong></div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="text-muted">Maximum</div>
+                                                            <div><strong>{{ round.maximum_reviewers }}</strong></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <strong class="small text-muted d-block mb-1">Reviewers Assigned</strong>
+                                                    <div>{{ countAssignedReviewers(round) }} / {{ round.target_reviewers }}</div>
+                                                    
+                                                    <strong class="small text-muted d-block mt-2 mb-1">Reviews Completed</strong>
+                                                    <div>{{ countCompletedReviews(round) }} / {{ round.target_reviewers }}</div>
+                                                </div>
                                             </div>
                                             
                                             <!-- Editorial Decision (read-only display) -->
@@ -154,7 +187,14 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div v-else class="text-muted small">No review rounds started for this revision.</div>
+                                <div v-else>
+                                    <div class="text-center py-4 border rounded bg-light mb-3">
+                                        <div class="text-muted mb-3">No review round has started yet.</div>
+                                        <button class="btn btn-primary" @click="startReviewRound(submission.id)" :disabled="processing">
+                                            Start Review Round
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div v-else class="text-muted">No revisions available.</div>
@@ -231,20 +271,23 @@
                 </div>
 
                 <!-- Reviewer Assignment -->
-                <div class="card mb-4" v-if="canProcess && ['review_pending', 'editorial_assessment'].includes(submission.status)">
+                <div class="card mb-4" v-if="canProcess && ['review_pending', 'editorial_assessment'].includes(submission.status) && activeReviewRound">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">Assign Reviewer</h5>
                     </div>
                     <div class="card-body">
-                        <div v-if="eligibleReviewers.length === 0" class="text-muted small">
-                            No eligible reviewers available for this journal.
+                        <div v-if="maxReviewersReached" class="alert alert-warning small mb-0">
+                            Maximum number of reviewers ({{ activeReviewRound.maximum_reviewers }}) has been reached for this round.
+                        </div>
+                        <div v-else-if="unassignedEligibleReviewers.length === 0" class="text-muted small">
+                            No eligible reviewers available to assign.
                         </div>
                         <div v-else>
                             <label class="form-label text-muted small mb-1">Select Reviewer</label>
                             <div class="mb-2">
                                 <select class="form-select form-select-sm" v-model="selectedReviewerId">
                                     <option value="" disabled>Select a reviewer...</option>
-                                    <option v-for="reviewer in eligibleReviewers" :key="reviewer.id" :value="reviewer.id">
+                                    <option v-for="reviewer in unassignedEligibleReviewers" :key="reviewer.id" :value="reviewer.id">
                                         {{ reviewer.name }} ({{ reviewer.email }})
                                     </option>
                                 </select>
@@ -331,7 +374,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -361,6 +404,28 @@ const selectedReviewerId = ref('');
 const selectedReviewMode = ref('blind');
 const processingReviewer = ref(false);
 const reviewerError = ref('');
+
+const activeReviewRound = computed(() => {
+    if (!submission.value || !submission.value.revisions || submission.value.revisions.length === 0) return null;
+    const latestRev = submission.value.revisions[0];
+    if (!latestRev.review_rounds || latestRev.review_rounds.length === 0) return null;
+    const round = latestRev.review_rounds[0];
+    return round;
+});
+
+const maxReviewersReached = computed(() => {
+    const round = activeReviewRound.value;
+    if (!round) return false;
+    const count = round.assignments ? round.assignments.filter(a => ['assigned', 'accepted', 'in_progress', 'submitted'].includes(a.status)).length : 0;
+    return count >= round.maximum_reviewers;
+});
+
+const unassignedEligibleReviewers = computed(() => {
+    const round = activeReviewRound.value;
+    if (!round) return eligibleReviewers.value;
+    const assignedIds = round.assignments ? round.assignments.filter(a => ['assigned', 'accepted', 'in_progress', 'submitted'].includes(a.status)).map(a => a.reviewer_id) : [];
+    return eligibleReviewers.value.filter(r => !assignedIds.includes(r.id));
+});
 
 // Per-round decision forms
 const decisionForms = reactive({});
@@ -469,6 +534,29 @@ const cancelAssignment = async (submissionId, assignmentId) => {
     } finally {
         processing.value = false;
     }
+};
+
+const startReviewRound = async (submissionId) => {
+    processing.value = true;
+    actionError.value = '';
+    try {
+        await axios.post(`/editorial/submissions/${submissionId}/rounds`);
+        await fetchSubmission();
+    } catch (err) {
+        actionError.value = err.response?.data?.message || 'Failed to start review round.';
+    } finally {
+        processing.value = false;
+    }
+};
+
+const countAssignedReviewers = (round) => {
+    if (!round.assignments) return 0;
+    return round.assignments.filter(a => ['assigned', 'accepted', 'in_progress', 'submitted'].includes(a.status)).length;
+};
+
+const countCompletedReviews = (round) => {
+    if (!round.assignments) return 0;
+    return round.assignments.filter(a => a.status === 'submitted').length;
 };
 
 const recordDecision = async (submissionId, roundId, form) => {
